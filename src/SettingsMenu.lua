@@ -18,11 +18,13 @@ function SettingsMenu:Constructor(parentWindow)
     self.Filters2 = Turbine.UI.MenuItem(LC.menuRace);
     self.Filters3 = Turbine.UI.MenuItem(LC.menuRep);
     self.Filters4 = Turbine.UI.MenuItem(LC.menuClass);
+    self.Filters5 = Turbine.UI.MenuItem(LC.menuMap);
     FilterItems = Filters:GetItems();
     FilterItems:Add(self.Filters1);
     FilterItems:Add(self.Filters2);
     FilterItems:Add(self.Filters3);
     FilterItems:Add(self.Filters4);
+    FilterItems:Add(self.Filters5);
 
     -- create the mode sub menu
     Mode = TravelWindowII.src.extensions.DMenuList(LC.menuMode);
@@ -104,6 +106,7 @@ function SettingsMenu:SetSelections()
     self.Filters2:SetChecked(hasbit(self.filters, bit(2)));
     self.Filters3:SetChecked(hasbit(self.filters, bit(3)));
     self.Filters4:SetChecked(hasbit(self.filters, bit(4)));
+    self.Filters5:SetChecked(hasbit(self.filters, bit(5)));
 
     -- set the mode
     self.Mode1:SetChecked(self.mode == 1);
@@ -136,6 +139,8 @@ function SettingsMenu:Update(string)
         self.filters = togglebit(self.filters, bit(3));
     elseif (string == LC.menuClass) then
         self.filters = togglebit(self.filters, bit(4));
+    elseif (string == LC.menuMap) then
+        self.filters = togglebit(self.filters, bit(5));
     elseif (string == LC.menuText) then
         self.mode = 1;
     elseif (string == LC.menuIcon) then

@@ -23,7 +23,11 @@ function TravelShortcut:Constructor(sType, tType, skill)
     self:InitEnabled();
 
     self:SetType(sType);
-    self:SetData(skill.id);
+    if sType == Turbine.UI.Lotro.ShortcutType.Skill then
+        self:SetData(skill.id);
+    elseif sType == Turbine.UI.Lotro.ShortcutType.Item then
+        self:SetData("0x0307000CA504B28E," .. skill.id);
+    end
 end
 
 function TravelShortcut:InitOrder()
@@ -129,6 +133,8 @@ function InitShortcuts()
 
         -- set the reputation travel items
         AddTravelSkills(TravelInfo.rep, 3);
+
+        AddTravelSkills(TravelInfo.map, 5)
     else
         -- set the creep travel items
         AddTravelSkills(TravelInfo.creep, 3);
@@ -140,15 +146,18 @@ function InitShortcuts()
 end
 
 function AddTravelSkills(skills, filter)
+    local shortcutType = Turbine.UI.Lotro.ShortcutType.Skill
     if filter == 4 then
         if TravelInfo:GetClassSkills() ~= skills then
             filter = 8
         end
+    elseif filter == 5 then
+        shortcutType = Turbine.UI.Lotro.ShortcutType.Item
     end
     for i = 1, skills:GetCount() do
         table.insert(TravelShortcuts,
                      TravelShortcut(
-                        Turbine.UI.Lotro.ShortcutType.Skill,
+                        shortcutType,
                         filter,
                         skills:Skill(i)));
     end
@@ -309,7 +318,29 @@ function CheckSkills(report)
     -- loop through all the shortcuts and list those those that are not learned
     for i = 1, #TravelShortcuts, 1 do
         local shortcut = TravelShortcuts[i]
-        if shortcut:GetTravelType() ~= 8 then
+        local travelType = shortcut:GetTravelType()
+        if travelType == 5 then
+            --if not shortcut.found then
+                local backpack = player:GetBackpack()
+                local bagItems = backpack:GetSize()
+
+                for index = 1, bagItems do
+                    local item = backpack:GetItem(index)
+                    if item ~= nil then
+                        local info = item:GetItemInfo()
+                        if info:GetCategory() == Turbine.Gameplay.ItemCategory.Travel then
+                            if info:GetName() == shortcut:GetName() then
+                                Turbine.Shell.WriteLine("BAGS: " .. info:GetName() .. " " .. shortcut:GetData())
+                                --shortcut:SetData(string.format("0x%X,", i) .. shortcut.skill.id);
+                                shortcut.found = true
+                                newShortcut = true
+                                break
+                            end
+                        end
+                    end
+                end
+            --end
+        elseif travelType ~= 8 then
             local wasFound = shortcut.found
             if FindSkill(shortcut) then
                 if not wasFound then

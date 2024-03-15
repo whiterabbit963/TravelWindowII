@@ -9,6 +9,7 @@ function TravelDictionary:Constructor()
     if (PlayerAlignment == Turbine.Gameplay.Alignment.FreePeople) then
         self.gen = IndexedDictionary(self, LC.genericLabel);
         self.rep = IndexedDictionary(self, LC.repLabel);
+        self.map = IndexedDictionary(self, LC.mapLabel);
         self.hunter = IndexedDictionary(self, LC.classLabel);
         self.warden = IndexedDictionary(self, LC.classLabel);
         self.mariner = IndexedDictionary(self, LC.classLabel);

@@ -1924,6 +1924,15 @@ function TravelDictionary:CreateDictionaries()
         map={{MapType.HARADWAITH, 415, 370}},
         level=150.1
     })
+
+    self.map:AddSkill({
+        id="0x7002286B",
+        EN={ name="Map to Tinnudir", label="Tinnudir", tag="Map", zone="Evendim", },
+        DE={},
+        FR={},
+        map={{MapType.ERIADOR, -1, -1}},
+        level=35,
+    })
 end
 
 function TravelDictionary:CreateCreepDictionary()

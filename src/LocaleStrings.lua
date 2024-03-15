@@ -95,6 +95,10 @@ LC_EN.repLabel = "Reputation Skills"
 LC_DE.repLabel = "Ruffertigkeiten"
 LC_FR.repLabel = "Compétences de réputation"
 
+LC_EN.mapLabel = "Map Item"
+LC_DE.mapLabel = ""
+LC_FR.mapLabel = ""
+
 LC_EN.moveUp = "Move Up"
 LC_DE.moveUp = "hoch"
 LC_FR.moveUp = "Vers le haut"
@@ -227,6 +231,10 @@ LC_FR.menuRep = "Voir les voyages de réputation"
 LC_EN.menuClass = "Show Class Travels"
 LC_DE.menuClass = "Zeige Klassenfertigkeiten"
 LC_FR.menuClass = "Voir les voyages de classe"
+
+LC_EN.menuMap = "Show Map Travels"
+LC_DE.menuMap = "Zeige "
+LC_FR.menuMap = "Voir les voyages de "
 
 LC_EN.menuMode = "Mode"
 LC_DE.menuMode = "Modus"
