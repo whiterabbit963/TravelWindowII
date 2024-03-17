@@ -1,36 +1,32 @@
 --[[ This is an extension of the Turbine Shortcut item 	]] --
 --[[ that will maintain some extra data, such as name, type, index ]] --
 --[[ and enabled status	]] --
-TravelShortcut = class(Turbine.UI.Lotro.Shortcut);
+TravelSlot = class() --Turbine.UI.Lotro.Shortcut);
 
 local NextDefaultIndex = 1
 
-function TravelShortcut:Constructor(sType, tType, skill)
-    Turbine.UI.Lotro.Shortcut.Constructor(self);
-
+function TravelSlot:Constructor(sType, tType, skill)
     -- the data to keep track of
-    self.found = false;
-    self.skill = skill;
-    self.skill.shortcut = self;
-    self.normalizedName = skill.name:lower();
-    self.normalizedLabel = skill.label:lower();
+    self.found = false
+    self.skill = skill
+    self.skill.ts = self
+    if sType == Turbine.UI.Lotro.ShortcutType.Skill then
+        self.shortcut = Turbine.UI.Lotro.Shortcut(sType, skill.id)
+    else
+        --self.item = 
+    end
+    self.normalizedName = skill.name:lower()
+    self.normalizedLabel = skill.label:lower()
     self.travelType = tType;
 
-    self.defaultIndex = NextDefaultIndex;
-    NextDefaultIndex = NextDefaultIndex + 1;
+    self.defaultIndex = NextDefaultIndex
+    NextDefaultIndex = NextDefaultIndex + 1
 
-    self:InitOrder();
-    self:InitEnabled();
-
-    self:SetType(sType);
-    if sType == Turbine.UI.Lotro.ShortcutType.Skill then
-        self:SetData(skill.id);
-    elseif sType == Turbine.UI.Lotro.ShortcutType.Item then
-        self:SetData("0x0307000CA504B28E," .. skill.id);
-    end
+    self:InitOrder()
+    self:InitEnabled()
 end
 
-function TravelShortcut:InitOrder()
+function TravelSlot:InitOrder()
     if LoadOrder == nil or LoadOrderNext == nil then
         -- error fallback
         self.Index = self.defaultIndex
@@ -44,7 +40,7 @@ function TravelShortcut:InitOrder()
     end
 end
 
-function TravelShortcut:InitEnabled()
+function TravelSlot:InitEnabled()
     if LoadEnabled == nil then
         -- error fallback
         self.Enabled = true
@@ -58,11 +54,11 @@ function TravelShortcut:InitEnabled()
 end
 
 -- function to set the enabled status
-function TravelShortcut:SetEnabled(value)
+function TravelSlot:SetEnabled(value)
     -- if the value type is not boolean, set an error
     if (type(value) ~= "boolean") then
         self.Enabled = nil;
-        error(string.format("Invalid input arg for TravelShortcut:SetEnabled: %q", value));
+        error(string.format("Invalid input arg for SetEnabled: %q", value));
         return;
     end
 
@@ -71,48 +67,47 @@ function TravelShortcut:SetEnabled(value)
 end
 
 -- function to check the enabled status of the shortcut
-function TravelShortcut:IsEnabled()
+function TravelSlot:IsEnabled()
     return self.Enabled;
 end
 
 -- function to return the ingame skill name of the shortcut
-function TravelShortcut:GetName()
+function TravelSlot:GetName()
     return self.skill.name;
 end
 
 -- function to return an optional skill description to disambiguate identical skill names
-function TravelShortcut:GetDescription()
+function TravelSlot:GetDescription()
     return self.skill.desc;
 end
 
 -- function to return the plugin specific skill label of the shortcut
-function TravelShortcut:GetLabel()
+function TravelSlot:GetLabel()
     return self.skill.label;
 end
 
+function TravelSlot:GetShortcut()
+    return self.shortcut
+end
+
 -- function to set the index of the shortcut
-function TravelShortcut:SetIndex(value)
+function TravelSlot:SetIndex(value)
     self.Index = value;
 end
 
 -- function to return the index of the shortcut
-function TravelShortcut:GetIndex()
+function TravelSlot:GetIndex()
     return self.Index;
 end
 
--- function to set the type of the shortcut
-function TravelShortcut:SetTravelType(type)
-    -- for future use
-end
-
 -- function to get the type of shortcut
-function TravelShortcut:GetTravelType()
+function TravelSlot:GetTravelType()
     return self.travelType;
 end
 
 function InitShortcuts()
     -- set default values
-    TravelShortcuts = {};
+    TravelSlots = {};
 
     -- set the either the travel skills for free people or monsters
     if (PlayerAlignment == Turbine.Gameplay.Alignment.FreePeople) then
@@ -120,11 +115,8 @@ function InitShortcuts()
         AddTravelSkills(TravelInfo.gen, 1);
 
         -- add the race travel to the list
-        table.insert(TravelShortcuts,
-                     TravelShortcut(
-                            Turbine.UI.Lotro.ShortcutType.Skill,
-                            2,
-                            TravelInfo.racial));
+        table.insert(TravelSlots, TravelSlot(
+            Turbine.UI.Lotro.ShortcutType.Skill, 2, TravelInfo.racial));
 
         -- set the class travel items
         AddTravelSkills(TravelInfo.hunter, 4);
@@ -141,32 +133,29 @@ function InitShortcuts()
     end
 
     ClearLoaders();
-    SortShortcuts();
+    SortTravelSlots();
     CheckSkills(false);
 end
 
 function AddTravelSkills(skills, filter)
-    local shortcutType = Turbine.UI.Lotro.ShortcutType.Skill
+    local skillType = Turbine.UI.Lotro.ShortcutType.Skill
     if filter == 4 then
         if TravelInfo:GetClassSkills() ~= skills then
             filter = 8
         end
     elseif filter == 5 then
-        shortcutType = Turbine.UI.Lotro.ShortcutType.Item
+        skillType = Turbine.UI.Lotro.ShortcutType.Item
     end
     for i = 1, skills:GetCount() do
-        table.insert(TravelShortcuts,
-                     TravelShortcut(
-                        shortcutType,
-                        filter,
-                        skills:Skill(i)));
+        table.insert(TravelSlots, TravelSlot(
+            skillType, filter, skills:Skill(i)))
     end
 end
 
 function IsShortcutEnabled(id)
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i]
-        if shortcut:GetData() == id then
+    for i = 1, #TravelSlots do
+        local shortcut = TravelSlots[i]:GetShortcut()
+        if shortcut ~= nil and shortcut:GetData() == id then
             return shortcut:IsEnabled()
         end
     end
@@ -175,9 +164,9 @@ function IsShortcutEnabled(id)
 end
 
 function IsShortcutTrained(id)
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i]
-        if shortcut:GetData() == id then
+    for i = 1, #TravelSlots do
+        local shortcut = TravelSlots[i]:GetShortcut()
+        if shortcut ~= nil and shortcut:GetData() == id then
             if shortcut.found then
                 return true;
             end
@@ -190,50 +179,58 @@ end
 
 function GetTravelOrder(scope)
     local order = {}
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i]
-        local id = shortcut:GetData()
-        if scope == Turbine.DataScope.Account and shortcut.skill.isRacial then
-            -- replace racial id with the racial id tag
-            id = TravelInfo.racialIDTag
+    for i = 1, #TravelSlots do
+        local ts = TravelSlots[i]
+        -- TODO: get shortcut/item id
+        if ts.shortcut ~= nil then
+            local id = ts.shortcut:GetData()
+            if scope == Turbine.DataScope.Account and ts.skill.isRacial then
+                -- replace racial id with the racial id tag
+                id = TravelInfo.racialIDTag
+            end
+            table.insert(order, id)
         end
-        table.insert(order, id)
     end
     return order
 end
 
 function GetTravelEnabled(scope)
     local enabled = {}
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i]
-        local id = shortcut:GetData()
-        if scope == Turbine.DataScope.Account and shortcut.skill.isRacial then
-            -- replace racial id with the racial id tag
-            id = TravelInfo.racialIDTag
+    for i = 1, #TravelSlots do
+        local ts = TravelSlots[i]
+        -- TODO: get shortcut/item id
+        if ts.shortcut ~= nil then
+            local id = ts.shortcut:GetData()
+            if scope == Turbine.DataScope.Account and ts.skill.isRacial then
+                -- replace racial id with the racial id tag
+                id = TravelInfo.racialIDTag
+            end
+            enabled[id] = ts.Enabled
         end
-        enabled[id] = shortcut.Enabled
     end
 
     return enabled
 end
 
 function GetTravelSkill(id)
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i]
-        if id == shortcut:GetData() then
-            return shortcut.skill
+    Turbine.Shell.WriteLine(id)
+    for i = 1, #TravelSlots do
+        local ts = TravelSlots[i]
+        if id == ts.skill.id and ts.shortcut ~= nil then
+            Turbine.Shell.WriteLine(ts.skill.name .. " " .. ts.shortcut:GetData())
+            return ts.shortcut
         end
     end
     return nil
 end
 
 function SwapTravelSkill(first, second)
-    local shortcut1 = TravelShortcuts[first]
-    local shortcut2 = TravelShortcuts[second]
+    local shortcut1 = TravelSlots[first]
+    local shortcut2 = TravelSlots[second]
     shortcut1:SetIndex(second)
     shortcut2:SetIndex(first)
-    TravelShortcuts[first] = shortcut2
-    TravelShortcuts[second] = shortcut1
+    TravelSlots[first] = shortcut2
+    TravelSlots[second] = shortcut1
 
     _G.travel.dirty = true
 end
@@ -243,12 +240,16 @@ function SortByName()
         if a.normalizedName > b.normalizedName then
             return true;
         elseif a.normalizedName == b.normalizedName then
-            return a:GetData() > b:GetData();
+            if a.shortcut ~= nil and b.shortcut ~= nil then
+                return a.shortcut:GetData() > b.shortcut:GetData();
+            else--TODO: handle item sorting --if a.shortcut == nil then
+                return false
+            end
         else
             return false;
         end
     end
-    SortShortcuts(comp);
+    SortTravelSlots(comp);
 end
 
 function SortByLabel()
@@ -256,12 +257,16 @@ function SortByLabel()
         if a.normalizedLabel > b.normalizedLabel then
             return true;
         elseif a.normalizedName == b.normalizedName then
-            return a:GetData() > b:GetData();
+            if a.shortcut ~= nil and b.shortcut ~= nil then
+                return a.shortcut:GetData() > b.shortcut:GetData();
+            else--TODO: handle item sorting --if a.shortcut == nil then
+                return false
+            end
         else
             return false;
         end
     end
-    SortShortcuts(comp);
+    SortTravelSlots(comp);
 end
 
 function SortByLevel()
@@ -274,33 +279,33 @@ function SortByLevel()
             return false;
         end
     end
-    SortShortcuts(comp);
+    SortTravelSlots(comp);
 end
 
 function SortByDefault()
     local comp = function(a, b)
         return a.defaultIndex > b.defaultIndex
     end
-    SortShortcuts(comp);
+    SortTravelSlots(comp);
 end
 
-function SortShortcuts(comp)
+function SortTravelSlots(comp)
     if comp == nil then
-        -- By default TravelShortcuts are sorted by an internal index value
+        -- By default TravelSlots are sorted by an internal index value
         comp = function(a, b)
             return a:GetIndex() > b:GetIndex();
         end
     end
 
     -- perform an optimized bubble sort
-    local n = #TravelShortcuts;
+    local n = #TravelSlots;
     while n > 2 do
         local new_n = 1;
         for i = 2, n do
-            if comp(TravelShortcuts[i - 1], TravelShortcuts[i]) then
-                local temp = TravelShortcuts[i - 1];
-                TravelShortcuts[i - 1] = TravelShortcuts[i];
-                TravelShortcuts[i] = temp;
+            if comp(TravelSlots[i - 1], TravelSlots[i]) then
+                local temp = TravelSlots[i - 1];
+                TravelSlots[i - 1] = TravelSlots[i];
+                TravelSlots[i] = temp;
                 new_n = i;
             end
         end
@@ -308,31 +313,31 @@ function SortShortcuts(comp)
     end
 
     -- cleanup internal Index values to be sequential
-    for i = 1, #TravelShortcuts do
-        TravelShortcuts[i].Index = i;
+    for i = 1, #TravelSlots do
+        TravelSlots[i].Index = i;
     end
 end
 
 function CheckSkills(report)
     local newShortcut = false;
     -- loop through all the shortcuts and list those those that are not learned
-    for i = 1, #TravelShortcuts, 1 do
-        local shortcut = TravelShortcuts[i]
-        local travelType = shortcut:GetTravelType()
+    for i = 1, #TravelSlots, 1 do
+        local ts = TravelSlots[i]
+        local travelType = ts:GetTravelType()
         if travelType == 5 then
             --if not shortcut.found then
-                local backpack = player:GetBackpack()
-                local bagItems = backpack:GetSize()
-
-                for index = 1, bagItems do
-                    local item = backpack:GetItem(index)
+            Turbine.Shell.WriteLine("BAGS: " .. ts:GetName())
+                local bagCount = Backpack:GetSize()
+                for index = 1, bagCount do
+                    local item = Backpack:GetItem(index)
                     if item ~= nil then
                         local info = item:GetItemInfo()
                         if info:GetCategory() == Turbine.Gameplay.ItemCategory.Travel then
-                            if info:GetName() == shortcut:GetName() then
-                                Turbine.Shell.WriteLine("BAGS: " .. info:GetName() .. " " .. shortcut:GetData())
+                            if info:GetName() == ts:GetName() then
+                                Turbine.Shell.WriteLine(tostring(item))
                                 --shortcut:SetData(string.format("0x%X,", i) .. shortcut.skill.id);
-                                shortcut.found = true
+                                ts.item = item
+                                ts.found = true
                                 newShortcut = true
                                 break
                             end
@@ -341,13 +346,13 @@ function CheckSkills(report)
                 end
             --end
         elseif travelType ~= 8 then
-            local wasFound = shortcut.found
-            if FindSkill(shortcut) then
+            local wasFound = ts.found
+            if FindSkill(ts) then
                 if not wasFound then
                     newShortcut = true
                 end
             elseif report then
-                Turbine.Shell.WriteLine(LC.skillNotTrained .. shortcut:GetName())
+                Turbine.Shell.WriteLine(LC.skillNotTrained .. ts:GetName())
             end
         end
     end
@@ -357,28 +362,28 @@ function CheckSkills(report)
     end
 end
 
-function FindSkill(shortcut)
-    if shortcut.found then
-        return true;
+function FindSkill(ts)
+    if ts.found then
+        return true
     end
 
     for i = 1, TrainedSkills:GetCount(), 1 do
         local skillInfo = TrainedSkills:GetItem(i):GetSkillInfo();
-        if skillInfo:GetName() == shortcut:GetName() then
-            local desc = shortcut:GetDescription();
+        if skillInfo:GetName() == ts:GetName() then
+            local desc = ts:GetDescription()
             if desc ~= nil then
                 if string.find(skillInfo:GetDescription(), desc, 1, true) ~= nil then
-                    shortcut.found = true;
-                    return true;
+                    ts.found = true
+                    return true
                 end
             else
-                shortcut.found = true;
-                return true;
+                ts.found = true
+                return true
             end
         end
     end
 
-    return false;
+    return false
 end
 
 function ListTrainedSkills()

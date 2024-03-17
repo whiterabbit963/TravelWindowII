@@ -85,7 +85,7 @@ function TravelPulldownTab:Constructor(toplevel)
     -- handle the event if the selected item changes
     self.pulldown.SelectedIndexChanged = function(sender, args)
         pcall(function()
-            self.quickslot:SetShortcut(TravelShortcuts[sender:GetSelection()]);
+            self.quickslot:SetShortcut(TravelSlots[sender:GetSelection()]);
         end)
     end
 
@@ -121,10 +121,10 @@ function TravelPulldownTab:SetItems()
     self.pulldown:ClearItems();
 
     -- add the shortcuts to the combo box
-    for i = 1, #TravelShortcuts, 1 do
-        if TravelShortcuts[i].found and TravelShortcuts[i]:IsEnabled() then
-            if (hasbit(Settings.filters, bit(TravelShortcuts[i]:GetTravelType()))) then
-                self.pulldown:AddItem(TravelShortcuts[i], i);
+    for i = 1, #TravelSlots, 1 do
+        if TravelSlots[i].found and TravelSlots[i]:IsEnabled() then
+            if (hasbit(Settings.filters, bit(TravelSlots[i]:GetTravelType()))) then
+                self.pulldown:AddItem(TravelSlots[i], i);
             end
         end
     end

@@ -245,8 +245,8 @@ function MapWindow:UpdateShortcut(id, enable)
 end
 
 function MapWindow:DebugNameLookup(id)
-    for i = 1, #TravelShortcuts, 1 do
-        local shortcut = TravelShortcuts[i]
+    for i = 1, #TravelSlots, 1 do
+        local shortcut = TravelSlots[i]
         if shortcut:GetData() == id then
             return shortcut.Name;
         end

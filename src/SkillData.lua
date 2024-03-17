@@ -1930,8 +1930,24 @@ function TravelDictionary:CreateDictionaries()
         EN={ name="Map to Tinnudir", label="Tinnudir", tag="Map", zone="Evendim", },
         DE={},
         FR={},
-        map={{MapType.ERIADOR, -1, -1}},
+        map={},
         level=35,
+    })
+    self.map:AddSkill({
+        id="0x70022862",
+        EN={ name="Map to Rivendell", label="Rivendell", tag="Map", zone="Trollshaws", },
+        DE={},
+        FR={},
+        map={},
+        level=36,
+    })
+    self.map:AddSkill({
+        id="0x7002137B",
+        EN={ name="Map to Esteldín", label="Esteldín", tag="Map", zone="North Downs", },
+        DE={},
+        FR={},
+        map={},
+        level=26,
     })
 end
 

@@ -412,12 +412,12 @@ function OptionsPanel:AddGeneralItems()
         self.loadGlobal:SetVisible(true);
         self.loadGlobal.Click = function(sender, args)
             SetSettings(AccountSettingsStrings, Turbine.DataScope.Account);
-            for i = 1, #TravelShortcuts do
-                TravelShortcuts[i]:InitOrder();
-                TravelShortcuts[i]:InitEnabled();
+            for i = 1, #TravelSlots do
+                TravelSlots[i]:InitOrder();
+                TravelSlots[i]:InitEnabled();
             end
             ClearLoaders();
-            SortShortcuts();
+            SortTravelSlots();
             SyncUIFromSettings();
         end
     end
@@ -650,7 +650,7 @@ function OptionsPanel:AddSkillItemForEnabling(skill)
     local check = Turbine.UI.Lotro.CheckBox();
     check:SetSize(19, 19);
     check:SetPosition(10, 0);
-    check:SetChecked(skill.shortcut:IsEnabled());
+    check:SetChecked(skill.ts:IsEnabled());
     check:SetParent(control);
     check:SetVisible(true);
     check.skill = skill;
@@ -660,7 +660,7 @@ function OptionsPanel:AddSkillItemForEnabling(skill)
     -- handle the event of the check box value changing
     check.CheckedChanged = function(sender, args)
         -- change the setting on the main window
-        skill.shortcut:SetEnabled(sender:IsChecked());
+        skill.ts:SetEnabled(sender:IsChecked());
 
         _G.travel.dirty = true;
         if not self.disableUpdates then
@@ -744,7 +744,7 @@ function OptionsPanel:EnableOverlapSkills(enable)
         if group ~= nil then
             for k = 1, #group do
                 for j = 1, #self.checks do
-                    if self.checks[j].skill.shortcut:GetData() == group[k] then
+                    if self.checks[j].skill.ts.shortcut:GetData() == group[k] then
                         self.checks[j]:SetChecked(enable);
                         break
                     end
@@ -768,8 +768,8 @@ end
 function OptionsPanel:EnableFromSettings()
     self.disableUpdates = true;
     for i = 1, #self.checks do
-        local shortcut = self.checks[i].skill.shortcut;
-        self.checks[i]:SetChecked(shortcut:IsEnabled());
+        local ts = self.checks[i].skill.ts;
+        self.checks[i]:SetChecked(ts:IsEnabled());
     end
     self.disableUpdates = false;
     -- TravelWindow:UpdateSettings() will be called later
@@ -787,15 +787,15 @@ function OptionsPanel:AddSortList()
     self.sortListBox:SetVisible(true);
 
     -- create a label to add to the listbox for each shortcut
-    for _, shortcut in pairs(TravelShortcuts) do
-        if shortcut:GetTravelType() ~= 8 then
+    for _, ts in pairs(TravelSlots) do
+        if ts:GetTravelType() ~= 8 then
             local tempLabel = Turbine.UI.Label();
-            tempLabel:SetText(shortcut:GetLabel());
+            tempLabel:SetText(ts:GetLabel());
             tempLabel:SetSize(sortListWidth, 20);
             tempLabel:SetBackColor(Turbine.UI.Color(DefAlpha, 0.1, 0.1, 0.1));
             tempLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft);
             tempLabel:SetZOrder(90);
-            tempLabel.shortcut = shortcut;
+            tempLabel.ts = ts;
 
             -- highlight the item that is selected by changing the colour of the
             -- the label when it is clicked
@@ -1012,18 +1012,18 @@ end
 function OptionsPanel:SwapShortcuts(second)
     local first = self.sortSelectedIndex
     local item1 = self.sortListBox:GetItem(first)
-    local shortcut1 = item1.shortcut
-    local shortcut2 = self.sortListBox:GetItem(second).shortcut
+    local ts1 = item1.ts
+    local ts2 = self.sortListBox:GetItem(second).ts
     self.sortListBox:RemoveItemAt(first)
     self.sortListBox:InsertItem(second, item1)
     self.sortSelectedIndex = second
 
-    first = shortcut1.Index
-    second = shortcut2.Index
-    shortcut1:SetIndex(second)
-    shortcut2:SetIndex(first)
-    TravelShortcuts[first] = shortcut2
-    TravelShortcuts[second] = shortcut1
+    first = ts1.Index
+    second = ts2.Index
+    ts1:SetIndex(second)
+    ts2:SetIndex(first)
+    TravelSlots[first] = ts2
+    TravelSlots[second] = ts1
 
     _G.travel.dirty = true
 end

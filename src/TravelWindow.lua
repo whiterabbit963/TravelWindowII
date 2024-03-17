@@ -192,7 +192,7 @@ function TravelWindow:Constructor(useMinWindow)
             self.previousCombatState = false;
         end
     end
-    AddCallback(player, "InCombatChanged", IncombatChangedHandler);
+    AddCallback(Player, "InCombatChanged", IncombatChangedHandler);
 
     self.Update = function(sender, args)
         -- handle opacity fade out
@@ -456,12 +456,12 @@ end
 
 function TravelWindow:ResetSettings()
     InitDefaultSettings();
-    for i = 1, #TravelShortcuts do
-        local shortcut = TravelShortcuts[i];
+    for i = 1, #TravelSlots do
+        local shortcut = TravelSlots[i];
         shortcut.Enabled = true;
         shortcut.Index = shortcut.defaultIndex;
     end
-    SortShortcuts();
+    SortTravelSlots();
     SyncUIFromSettings();
 end
 

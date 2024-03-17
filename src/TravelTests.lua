@@ -7,7 +7,7 @@ if (TravelWindowII.testing) then
     -- create an option window and a travel shortcut to perform the tests on
     function TravelTests:Setup()
         self.optionWindow = TravelWindowII.src.OptionsWindow();
-        self.testShortcut = TravelWindowII.src.TravelShortcut();
+        self.testShortcut = TravelWindowII.src.TravelSlot();
     end
 
     -- ensure the option window is closed and removed at the end of testing

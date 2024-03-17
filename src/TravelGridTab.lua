@@ -96,6 +96,7 @@ function TravelGridTab:Constructor(toplevel)
         if shortcut == nil then
             return
         end
+        Turbine.Shell.WriteLine(shortcut:GetData())
         local srcSkill = GetTravelSkill(shortcut:GetData())
         if srcSkill == nil then
             return
@@ -122,7 +123,7 @@ function TravelGridTab:Constructor(toplevel)
         end
         if srcIndex > dstIndex then
             while dstIndex - 1 >= 1 do
-                if TravelShortcuts[dstIndex - 1].found then
+                if TravelSlots[dstIndex - 1].found then
                     break
                 end
                 dstIndex = dstIndex - 1
@@ -134,9 +135,9 @@ function TravelGridTab:Constructor(toplevel)
         end
 
         if srcIndex < dstIndex then
-            local maxIndex = #TravelShortcuts
+            local maxIndex = #TravelSlots
             while dstIndex + 1 <= maxIndex do
-                if TravelShortcuts[dstIndex + 1].found then
+                if TravelSlots[dstIndex + 1].found then
                     break
                 end
                 dstIndex = dstIndex + 1
@@ -195,22 +196,22 @@ function TravelGridTab:SetItems()
         self:UpdateBounds();
     end
 
-    self.row = 1;
-    self.col = 1;
+    self.row = 1
+    self.col = 1
     if self.parent.dirty then
         -- clear all the old quickslots from the SubWindow
-        self.controlList = self.SubWindow:GetControls();
-        self.controlList:Clear();
+        self.controlList = self.SubWindow:GetControls()
+        self.controlList:Clear()
 
         -- collect shortcuts for display
         self.selected = {}
-        for i = 1, #TravelShortcuts, 1 do
-            local shortcut = TravelShortcuts[i];
+        for i = 1, #TravelSlots do
+            local ts = TravelSlots[i]
             -- make sure skill is trained and enabled
-            if shortcut.found and shortcut:IsEnabled() then
+            if ts.found and ts:IsEnabled() then
                 -- apply skill type filter if set in options
-                if hasbit(Settings.filters, bit(shortcut:GetTravelType())) then
-                    table.insert(self.selected, shortcut);
+                if hasbit(Settings.filters, bit(ts:GetTravelType())) then
+                    table.insert(self.selected, ts)
                 end
             end
         end
@@ -246,7 +247,7 @@ function TravelGridTab:SetItems()
 end
 
 -- function to add a single shortcut to the tab
-function TravelGridTab:AddItem(shortcut, margin)
+function TravelGridTab:AddItem(ts, margin)
 
     local index = (self.row - 1) * self.numOfCols + self.col;
 
@@ -257,17 +258,25 @@ function TravelGridTab:AddItem(shortcut, margin)
     else
         --	create new quickslots setting the position
         --  based on the row and column locations
-        self.quickslots[index] = Turbine.UI.Lotro.Quickslot();
+        if ts.shortcut ~= nil then
+            self.quickslots[index] = Turbine.UI.Lotro.Quickslot();
+        else
+            self.quickslots[index] = Turbine.UI.Lotro.ItemControl()
+        end
         self.quickslots[index]:SetSize(36, 36);
         self.quickslots[index]:SetPosition(x, y);
         self.quickslots[index]:SetZOrder(90);
-        self.quickslots[index]:SetUseOnRightClick(false);
         self.quickslots[index]:SetParent(self.SubWindow);
 
-        -- attempt to create the shortcut
-        pcall(function()
-            self.quickslots[index]:SetShortcut(shortcut);
-        end)
+        if ts.shortcut ~= nil then
+            self.quickslots[index]:SetUseOnRightClick(false);
+            pcall(function()
+                self.quickslots[index]:SetShortcut(ts.shortcut);
+            end)
+        else
+            Turbine.Shell.WriteLine("ITEM " .. ts.item:GetItemInfo():GetName() .. " " .. index)
+            self.quickslots[index]:SetItem(ts.item)
+        end
 
         -- set all quickslots to be visible and
         -- disable dropping new shortcuts onto them
